@@ -1,0 +1,24 @@
+{
+  "name": "ferreteria-el-tornillo",
+  "version": "1.0.0",
+  "description": "Catálogo web para Ferretería El Tornillo",
+  "main": "dist/main.js",
+  "scripts": {
+    "build": "tsc && tailwindcss -i ./src/styles/styles.css -o ./dist/styles.css --minify",
+    "dev": "tsc --watch",
+    "build-css": "tailwindcss -i ./src/styles/styles.css -o ./dist/styles.css --watch",
+    "serve": "node servidor-local.js"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0",
+    "tailwindcss": "^3.3.0",
+    "daisyui": "^3.9.0",
+    "autoprefixer": "^10.4.0",
+    "postcss": "^8.4.0"
+  },
+  "keywords": ["ferreteria", "ecommerce", "typescript", "tailwind"],
+  "author": "Ferretería El Tornillo",
+  "license": "MIT"
+}
+

@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test - Ferretería El Tornillo</title>
+    <link href="dist/styles.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mx-auto px-4 py-8">
+        <h1 class="text-3xl font-bold mb-4">Test de Productos</h1>
+        <div id="test-products" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+    </div>
+    
+    <script>
+        // Productos de prueba
+        const productos = [
+            {
+                id: 'MOCK-001',
+                nombre: 'Martillo Carpintero 20oz',
+                descripcion: 'Martillo profesional con mango de fibra de vidrio',
+                precio: 15990,
+                stock: 50,
+                imagenURL: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=400',
+                esDestacado: true
+            },
+            {
+                id: 'MOCK-002',
+                nombre: 'Sierra Circular 7 1/4"',
+                descripcion: 'Sierra circular profesional con motor de 1800W',
+                precio: 89990,
+                stock: 25,
+                imagenURL: 'https://images.unsplash.com/photo-1590736969955-71cc94901144?w=400',
+                esDestacado: true
+            },
+            {
+                id: 'MOCK-003',
+                nombre: 'Taladro Percutor 18V',
+                descripcion: 'Taladro percutor inalámbrico con batería de litio',
+                precio: 129990,
+                stock: 15,
+                imagenURL: 'https://images.unsplash.com/photo-1581094794329-c8112a89af12?w=400',
+                esDestacado: true
+            }
+        ];
+
+        function formatPrice(price) {
+            return new Intl.NumberFormat('es-CL', {
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0
+            }).format(price);
+        }
+
+        function renderProducts() {
+            const container = document.getElementById('test-products');
+            container.innerHTML = productos.map(product => `
+                <div class="card bg-base-100 shadow-xl">
+                    <figure class="px-4 pt-4">
+                        <img src="${product.imagenURL}" alt="${product.nombre}" class="rounded-xl h-48 w-full object-cover">
+                    </figure>
+                    <div class="card-body">
+                        <h2 class="card-title">${product.nombre}</h2>
+                        <p>${product.descripcion}</p>
+                        <div class="flex justify-between items-center">
+                            <span class="text-2xl font-bold text-primary">$${formatPrice(product.precio)}</span>
+                            <span class="badge badge-success">Stock: ${product.stock}</span>
+                        </div>
+                        <div class="card-actions justify-end">
+                            <button class="btn btn-primary btn-sm w-full">Agregar al Carrito</button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        document.addEventListener('DOMContentLoaded', renderProducts);
+    </script>
+</body>
+</html>
+
+
