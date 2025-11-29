@@ -27,7 +27,8 @@ export class GoogleSheetsService {
         precio: 15990,
         stock: 50,
         imagenURL: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=400',
-        esDestacado: true
+        esDestacado: true,
+        categoria: 'Herramientas Manuales'
       },
       {
         id: 'MOCK-002',
@@ -36,7 +37,8 @@ export class GoogleSheetsService {
         precio: 89990,
         stock: 25,
         imagenURL: 'https://images.unsplash.com/photo-1590736969955-71cc94901144?w=400',
-        esDestacado: true
+        esDestacado: true,
+        categoria: 'Herramientas Eléctricas'
       },
       {
         id: 'MOCK-003',
@@ -45,7 +47,8 @@ export class GoogleSheetsService {
         precio: 129990,
         stock: 15,
         imagenURL: 'https://images.unsplash.com/photo-1581094794329-c8112a89af12?w=400',
-        esDestacado: true
+        esDestacado: true,
+        categoria: 'Herramientas Eléctricas'
       },
       {
         id: 'MOCK-004',
@@ -54,7 +57,8 @@ export class GoogleSheetsService {
         precio: 4500,
         stock: 200,
         imagenURL: 'https://images.unsplash.com/photo-1558618047-3c8c76ca7d13?w=400',
-        esDestacado: false
+        esDestacado: false,
+        categoria: 'Fijaciones'
       },
       {
         id: 'MOCK-005',
@@ -63,7 +67,8 @@ export class GoogleSheetsService {
         precio: 8990,
         stock: 80,
         imagenURL: 'https://images.unsplash.com/photo-1581094794329-c8112a89af12?w=400',
-        esDestacado: false
+        esDestacado: false,
+        categoria: 'Herramientas Manuales'
       },
       {
         id: 'MOCK-006',
@@ -72,7 +77,8 @@ export class GoogleSheetsService {
         precio: 12990,
         stock: 150,
         imagenURL: 'https://images.unsplash.com/photo-1558618047-3c8c76ca7d13?w=400',
-        esDestacado: false
+        esDestacado: false,
+        categoria: 'Fijaciones'
       },
       {
         id: 'MOCK-007',
@@ -81,7 +87,8 @@ export class GoogleSheetsService {
         precio: 45990,
         stock: 30,
         imagenURL: 'https://images.unsplash.com/photo-1581094794329-c8112a89af12?w=400',
-        esDestacado: false
+        esDestacado: false,
+        categoria: 'Pinturas'
       },
       {
         id: 'MOCK-008',
@@ -90,7 +97,8 @@ export class GoogleSheetsService {
         precio: 5990,
         stock: 60,
         imagenURL: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=400',
-        esDestacado: false
+        esDestacado: false,
+        categoria: 'Herramientas Manuales'
       }
     ];
   }
@@ -108,10 +116,10 @@ export class GoogleSheetsService {
     }
 
     console.log('Cargando productos desde Google Sheets:', this.sheetsUrl);
-    
+
     try {
       const response = await fetch(this.sheetsUrl);
-      
+
       if (!response.ok) {
         throw new Error(`Error al obtener datos: ${response.status} ${response.statusText}`);
       }
@@ -119,15 +127,15 @@ export class GoogleSheetsService {
       const csvText = await response.text();
       console.log('CSV recibido, longitud:', csvText.length, 'caracteres');
       console.log('Primeras 200 caracteres:', csvText.substring(0, 200));
-      
+
       const products = this.parseCSV(csvText);
-      
+
       // Si no hay productos o hay un error en el parseo, usar productos de ejemplo
       if (products.length === 0) {
         console.warn('No se encontraron productos en Google Sheets. Usando productos de ejemplo.');
         return this.getMockProducts();
       }
-      
+
       console.log(`✅ ${products.length} productos cargados exitosamente desde Google Sheets`);
       this.lastFetchTime = now;
       return products;
@@ -174,20 +182,20 @@ export class GoogleSheetsService {
    */
   private parseCSV(csvText: string): Product[] {
     const lines = csvText.trim().split('\n').filter(line => line.trim().length > 0);
-    
+
     if (lines.length < 2) {
       console.warn('CSV tiene menos de 2 líneas (encabezado + datos)');
       return [];
     }
-    
+
     const headers = this.parseCSVLine(lines[0]).map(header => header.trim().toLowerCase());
     console.log('Headers encontrados:', headers);
-    
+
     const products: Product[] = [];
-    
+
     for (let i = 1; i < lines.length; i++) {
       const values = this.parseCSVLine(lines[i]);
-      
+
       if (values.length >= 6) { // Mínimo 6 columnas requeridas
         const idIndex = headers.indexOf('id');
         const nombreIndex = headers.indexOf('nombre');
@@ -196,7 +204,8 @@ export class GoogleSheetsService {
         const stockIndex = headers.indexOf('stock');
         const imagenURLIndex = headers.indexOf('imagenurl');
         const esDestacadoIndex = headers.indexOf('esdestacado');
-        
+        const categoriaIndex = headers.indexOf('categoria');
+
         const product: Product = {
           id: (idIndex >= 0 ? values[idIndex] : '').trim(),
           nombre: (nombreIndex >= 0 ? values[nombreIndex] : '').trim(),
@@ -204,9 +213,10 @@ export class GoogleSheetsService {
           precio: parseFloat((precioIndex >= 0 ? values[precioIndex] : '0').trim()) || 0,
           stock: parseInt((stockIndex >= 0 ? values[stockIndex] : '0').trim()) || 0,
           imagenURL: (imagenURLIndex >= 0 ? values[imagenURLIndex] : '').trim(),
-          esDestacado: (esDestacadoIndex >= 0 ? values[esDestacadoIndex]?.toLowerCase().trim() : 'false') === 'true'
+          esDestacado: (esDestacadoIndex >= 0 ? values[esDestacadoIndex]?.toLowerCase().trim() : 'false') === 'true',
+          categoria: (categoriaIndex >= 0 ? values[categoriaIndex] : 'General').trim()
         };
-        
+
         // Solo agregar si tiene al menos id y nombre
         if (product.id && product.nombre) {
           products.push(product);
@@ -218,7 +228,7 @@ export class GoogleSheetsService {
         console.warn(`Línea ${i + 1} tiene menos columnas de las esperadas:`, values);
       }
     }
-    
+
     console.log(`Total productos parseados: ${products.length}`);
     return products;
   }
@@ -232,11 +242,11 @@ export class GoogleSheetsService {
     const result: string[] = [];
     let current = '';
     let inQuotes = false;
-    
+
     for (let i = 0; i < line.length; i++) {
       const char = line[i];
       const nextChar = i < line.length - 1 ? line[i + 1] : '';
-      
+
       if (char === '"') {
         // Si hay dos comillas seguidas, es una comilla escapada
         if (nextChar === '"' && inQuotes) {
@@ -252,7 +262,7 @@ export class GoogleSheetsService {
         current += char;
       }
     }
-    
+
     // Agregar el último campo
     result.push(current.trim());
     return result;

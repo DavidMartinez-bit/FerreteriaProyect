@@ -39,7 +39,22 @@ module.exports = {
         },
       },
       "light",
-      "dark",
+      {
+        dark: {
+          "primary": "#ef4444",
+          "secondary": "#374151",
+          "accent": "#f59e0b",
+          "neutral": "#1f2937",
+          "base-100": "#0f172a", // Slate 900
+          "base-200": "#1e293b", // Slate 800
+          "base-300": "#334155", // Slate 700
+          "base-content": "#f8fafc", // Slate 50
+          "info": "#3b82f6",
+          "success": "#10b981",
+          "warning": "#f59e0b",
+          "error": "#ef4444",
+        },
+      },
     ],
     darkTheme: "dark",
     base: true,

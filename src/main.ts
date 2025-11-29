@@ -17,6 +17,9 @@ class FerreteriaApp {
   private productCard: ProductCard | null = null;
   private carousel: Carousel | null = null;
   private cartDrawer: CartDrawer | null = null;
+  private currentCategory: string = 'all';
+  private currentSearch: string = '';
+  private allProducts: Product[] = [];
 
   // URLs de configuración - CAMBIAR ESTOS VALORES
   private readonly SHEETS_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQTXFUlE5gDLelVwB1v_NM5vhg6LYtqNc2cwdmfs4HbB3hQ9dLMQZCitNw1Nw_hxccWhC4tyuJR5WaD/pub?output=csv';
@@ -37,6 +40,7 @@ class FerreteriaApp {
       this.showLoading();
       await this.loadProducts();
       this.setupEventListeners();
+      this.setupTheme();
       this.hideLoading();
     } catch (error) {
       console.error('Error inicializando la aplicación:', error);
@@ -58,8 +62,12 @@ class FerreteriaApp {
    */
   private async loadProducts(): Promise<void> {
     const products = await this.sheetsService.getProducts();
+    this.allProducts = products;
     const featuredProducts = products.filter(p => p.esDestacado && p.stock > 0);
     const availableProducts = products.filter(p => p.stock > 0);
+
+    // Renderizar filtros
+    this.renderCategoryFilters(availableProducts);
 
     // Renderizar carrusel de productos destacados
     this.carousel = new Carousel(featuredProducts);
@@ -175,6 +183,23 @@ class FerreteriaApp {
         }
       }
     };
+
+    window.filterHandler = {
+      setCategory: (category: string) => {
+        this.currentCategory = category;
+        this.filterProducts();
+      }
+    };
+
+    // Search listener
+    const searchInput = document.getElementById('search-input') as HTMLInputElement;
+    if (searchInput) {
+      searchInput.addEventListener('input', (e) => {
+        const target = e.target as HTMLInputElement;
+        this.currentSearch = target.value.toLowerCase().trim();
+        this.filterProducts();
+      });
+    }
   }
 
   /**
@@ -183,7 +208,7 @@ class FerreteriaApp {
   private updateDeliverySection(): void {
     const addressSection = document.getElementById('address-section');
     const deliveryInfo = this.cartService.getDeliveryInfo();
-    
+
     if (addressSection) {
       addressSection.classList.toggle('hidden', deliveryInfo.method === DeliveryMethod.STORE_PICKUP);
     }
@@ -234,12 +259,103 @@ class FerreteriaApp {
         <span>${message}</span>
       </div>
     `;
-    
+
     document.body.appendChild(toast);
-    
+
     setTimeout(() => {
       document.body.removeChild(toast);
     }, 3000);
+  }
+
+  /**
+   * Configura el tema (claro/oscuro)
+   */
+  private setupTheme(): void {
+    const themeToggle = document.getElementById('theme-toggle');
+    const sunIcon = document.getElementById('sun-icon');
+    const moonIcon = document.getElementById('moon-icon');
+    const html = document.documentElement;
+
+    // Cargar tema guardado o preferido
+    const savedTheme = localStorage.getItem('theme');
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+    const setTheme = (isDark: boolean) => {
+      const theme = isDark ? 'dark' : 'ferreteria';
+      html.setAttribute('data-theme', theme);
+      localStorage.setItem('theme', theme);
+
+      if (isDark) {
+        sunIcon?.classList.remove('hidden');
+        moonIcon?.classList.add('hidden');
+      } else {
+        sunIcon?.classList.add('hidden');
+        moonIcon?.classList.remove('hidden');
+      }
+    };
+
+    // Inicializar
+    if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+      setTheme(true);
+    } else {
+      setTheme(false);
+    }
+
+    // Event listener
+    themeToggle?.addEventListener('click', () => {
+      const currentTheme = html.getAttribute('data-theme');
+      setTheme(currentTheme !== 'dark');
+    });
+  }
+
+  /**
+   * Renderiza los filtros de categoría
+   */
+  private renderCategoryFilters(products: Product[]): void {
+    const filterContainer = document.getElementById('category-filters');
+    if (!filterContainer) return;
+
+    // Extraer categorías únicas
+    const categories = ['Todos', ...new Set(products.map(p => p.categoria).filter(Boolean))];
+
+    filterContainer.innerHTML = categories.map(category => {
+      const isActive = (category === 'Todos' && this.currentCategory === 'all') || category === this.currentCategory;
+      const activeClass = isActive ? 'btn-primary' : 'btn-ghost';
+      return `
+        <button 
+          class="btn ${activeClass} btn-sm capitalize"
+          onclick="window.filterHandler.setCategory('${category}')"
+        >
+          ${category}
+        </button>
+      `;
+    }).join('');
+  }
+
+  /**
+   * Filtra y renderiza los productos
+   */
+  private filterProducts(): void {
+    // Filtrar productos
+    let filtered = this.allProducts.filter(p => p.stock > 0);
+
+    // Filtro por categoría
+    if (this.currentCategory !== 'Todos' && this.currentCategory !== 'all') {
+      filtered = filtered.filter(p => p.categoria === this.currentCategory);
+    }
+
+    // Filtro por búsqueda
+    if (this.currentSearch) {
+      filtered = filtered.filter(p =>
+        p.nombre.toLowerCase().includes(this.currentSearch) ||
+        p.descripcion.toLowerCase().includes(this.currentSearch)
+      );
+    }
+
+    // Actualizar botones visualmente
+    this.renderCategoryFilters(this.allProducts.filter(p => p.stock > 0));
+
+    this.renderProductGallery(filtered);
   }
 }
 
@@ -255,6 +371,9 @@ declare global {
       setDeliveryMethod: (method: DeliveryMethod) => void;
       setAddress: (address: string) => void;
       proceedToCheckout: () => void;
+    };
+    filterHandler: {
+      setCategory: (category: string) => void;
     };
   }
 }

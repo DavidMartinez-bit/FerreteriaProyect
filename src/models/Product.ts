@@ -10,6 +10,7 @@ export interface Product {
   stock: number;
   imagenURL: string;
   esDestacado: boolean;
+  categoria?: string; // Optional for backward compatibility
 }
 
 /**
